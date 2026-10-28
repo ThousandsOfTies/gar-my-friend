@@ -4,9 +4,10 @@ const path=require('node:path');
 
 /** The application writes its frames to the native SPI/GPIO output process. */
 class DisplayOutput {
-  constructor(root,onError){
+  constructor(root,wiring,onError){
     this.closed=false;this.busy=false;this.next=null;
-    this.child=spawn(path.join(root,'build/device-output'),[],{cwd:root,stdio:['pipe','pipe','pipe']});
+    const args=['--spi',wiring.spi,'--chip',wiring.chip,'--dc',String(wiring.dc),'--hz',String(wiring.hz)];
+    this.child=spawn(path.join(root,'build/device-output'),args,{cwd:root,stdio:['pipe','pipe','pipe']});
     let pending='',detail='';
     this.child.stdout.setEncoding('utf8');
     this.child.stdout.on('data',chunk=>{

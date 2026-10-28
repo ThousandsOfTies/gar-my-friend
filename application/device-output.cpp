@@ -16,6 +16,25 @@
 static void check(bool condition, const char* operation) {
     if (!condition) throw std::runtime_error(std::string(operation)+": "+strerror(errno));
 }
+struct Wiring {
+    std::string spi,chip;unsigned dc=0,hz=0;
+    Wiring(int argc,char** argv){
+        if(argc!=9)throw std::runtime_error("Usage: device-output --spi DEVICE --chip DEVICE --dc LINE --hz SPEED");
+        bool haveSpi=false,haveChip=false,haveDc=false,haveHz=false;
+        for(int i=1;i<argc;i+=2){
+            std::string key=argv[i],value=argv[i+1];
+            if(key=="--spi"&&!haveSpi){spi=value;haveSpi=true;}
+            else if(key=="--chip"&&!haveChip){chip=value;haveChip=true;}
+            else if((key=="--dc"&&!haveDc)||(key=="--hz"&&!haveHz)){
+                if(value.empty()||value.find_first_not_of("0123456789")!=std::string::npos)throw std::runtime_error("Invalid numeric device argument");
+                unsigned long parsed=std::stoul(value);
+                if(key=="--dc"){if(parsed>4095)throw std::runtime_error("Invalid DC line");dc=(unsigned)parsed;haveDc=true;}
+                else{if(parsed<1||parsed>100000000)throw std::runtime_error("Invalid SPI speed");hz=(unsigned)parsed;haveHz=true;}
+            }else throw std::runtime_error("Unknown or duplicate device argument");
+        }
+        if(!haveSpi||!haveChip||!haveDc||!haveHz)throw std::runtime_error("Missing device argument");
+    }
+};
 struct Surface {
     std::array<uint16_t,240*240> pixels;
     void point(int x,int y,uint16_t color) { if(x>=0&&x<240&&y>=0&&y<240) pixels[y*240+x]=color; }
@@ -40,12 +59,12 @@ struct Surface {
 };
 struct Devices {
     int spi=-1,chip=-1,dc=-1;
-    Devices(){
-        spi=open("/dev/spidev0.0",O_WRONLY);check(spi>=0,"open SPI");
-        uint8_t mode=0,bits=8;uint32_t hz=24000000;
+    explicit Devices(const Wiring& wiring){
+        spi=open(wiring.spi.c_str(),O_WRONLY);check(spi>=0,"open SPI");
+        uint8_t mode=0,bits=8;uint32_t hz=wiring.hz;
         check(ioctl(spi,SPI_IOC_WR_MODE,&mode)>=0,"SPI mode");check(ioctl(spi,SPI_IOC_WR_BITS_PER_WORD,&bits)>=0,"SPI bits");check(ioctl(spi,SPI_IOC_WR_MAX_SPEED_HZ,&hz)>=0,"SPI speed");
-        chip=open("/dev/gpiochip0",O_RDONLY);check(chip>=0,"open GPIO");
-        gpio_v2_line_request request{};request.offsets[0]=16;request.num_lines=1;request.config.flags=GPIO_V2_LINE_FLAG_OUTPUT;strcpy(request.consumer,"GarMyFriend LCD DC");
+        chip=open(wiring.chip.c_str(),O_RDONLY);check(chip>=0,"open GPIO");
+        gpio_v2_line_request request{};request.offsets[0]=wiring.dc;request.num_lines=1;request.config.flags=GPIO_V2_LINE_FLAG_OUTPUT;strcpy(request.consumer,"GarMyFriend LCD DC");
         check(ioctl(chip,GPIO_V2_GET_LINE_IOCTL,&request)>=0,"request DC line");dc=request.fd;
         uint8_t format=0x55,memory=0;command(0x3a,&format,1);command(0x36,&memory,1);
     }
@@ -58,8 +77,8 @@ struct Devices {
         std::array<uint8_t,240*240*2> bytes;for(size_t i=0;i<surface.pixels.size();++i){bytes[2*i]=surface.pixels[i]>>8;bytes[2*i+1]=surface.pixels[i]&255;}transfer(bytes.data(),bytes.size());
     }
 };
-int main(){try{
-    Devices devices;Surface surface;std::string line;uint64_t frames=0;
+int main(int argc,char** argv){try{
+    Wiring wiring(argc,argv);Devices devices(wiring);Surface surface;std::string line;uint64_t frames=0;
     while(std::getline(std::cin,line)){
         std::istringstream input(line);roboface::Pose pose{};roboface::Effects effects;
         input>>pose.eyeRx>>pose.eyeRy>>pose.eyeY>>pose.leftOpen>>pose.rightOpen>>pose.happyEye>>pose.tilt>>pose.mouthY>>pose.mouthW>>pose.mouthCurve>>pose.mouthOpen>>pose.cheek;

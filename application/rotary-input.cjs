@@ -1,23 +1,14 @@
 'use strict';
-const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 /** Product adapter. The shared reader owns GPIO decoding; only the runtime
  * assigns an encoder detent or press to a face action. */
 class RotaryInput {
-  constructor(root, onInput, onError) {
+  constructor(root, wiring, onInput, onError) {
     this.ready = false; this.error = null; this.counter = 0; this.closed = false;
-    const rows = fs.readFileSync(path.join(root,'hardware/gpio.csv'),'utf8').trim().split(/\r?\n/).map(row=>row.split(','));
-    const headers=rows.shift();
-    const mapping=Object.fromEntries(rows.map(row=>{
-      const value=Object.fromEntries(headers.map((key,index)=>[key,row[index]]));return [value.name,value];
-    }));
-    const lines=['encoder_a','encoder_b','encoder_sw'].map(name=>mapping[name]);
-    if(lines.some(row=>!row||row.direction!=='input'||!/^\d+$/.test(row.line)||Number(row.line)>4095) ||
-      new Set(lines.map(row=>row.line)).size!==3 || new Set(lines.map(row=>row.chip)).size!==1 || !/^\/dev\/gpiochip\d+$/.test(lines[0].chip)) throw new Error('ロータリーのGPIO設定を確認してください');
-    this.chip=lines[0].chip;this.lines=lines.map(row=>Number(row.line));
-    const args=['--chip',this.chip,'--clock',lines[0].line,'--data',lines[1].line,'--switch',lines[2].line];
+    this.chip=wiring.chip;this.lines=[wiring.clock,wiring.data,wiring.switch];
+    const args=['--chip',wiring.chip,'--clock',String(wiring.clock),'--data',String(wiring.data),'--switch',String(wiring.switch)];
     this.child=spawn(path.join(root,'build/gar_rotary_input'),args,{cwd:root,stdio:['ignore','pipe','pipe']});
     let pending='';
     this.child.stdout.setEncoding('utf8');
