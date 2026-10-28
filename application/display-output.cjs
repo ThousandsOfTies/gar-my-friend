@@ -7,13 +7,15 @@ class DisplayOutput {
   constructor(root,wiring,onError){
     this.closed=false;this.busy=false;this.next=null;
     const args=['--spi',wiring.spi,'--chip',wiring.chip,'--dc',String(wiring.dc),'--hz',String(wiring.hz)];
+    if(wiring.reset!==undefined)args.push('--reset',String(wiring.reset));
     this.child=spawn(path.join(root,'build/device-output'),args,{cwd:root,stdio:['pipe','pipe','pipe']});
     let pending='',detail='';
     this.child.stdout.setEncoding('utf8');
     this.child.stdout.on('data',chunk=>{
       pending+=chunk;
       while(pending.includes('\n')){
-        const end=pending.indexOf('\n');pending=pending.slice(end+1);
+        const end=pending.indexOf('\n'),line=pending.slice(0,end);pending=pending.slice(end+1);
+        try{const status=JSON.parse(line);if(status.frames===1||status.frames%200===0)console.log(`LCD frames=${status.frames}`);}catch{}
         this.busy=false;this.flush();
       }
     });

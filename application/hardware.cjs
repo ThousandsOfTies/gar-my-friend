@@ -42,16 +42,21 @@ function loadHardware(directory){
     return {chip:entry.chip,line:integer(entry.line,0,4095,name)};
   }
   const dc=line('lcd_dc','output');
+  const reset=mapping.has('lcd_rst')?line('lcd_rst','output'):null;
+  if(reset&&(reset.chip!==dc.chip||reset.line===dc.line))throw new Error('LCD reset requires a distinct line on the DC GPIO chip');
   const rotary=['encoder_a','encoder_b','encoder_sw'].map(name=>line(name,'input'));
   if(new Set(rotary.map(entry=>entry.chip)).size!==1||new Set(rotary.map(entry=>entry.line)).size!==3)throw new Error('Rotary requires three distinct lines on one GPIO chip');
   if(rotary.some(entry=>entry.chip===dc.chip&&entry.line===dc.line))throw new Error('LCD DC conflicts with rotary input');
+  if(reset&&rotary.some(entry=>entry.chip===reset.chip&&entry.line===reset.line))throw new Error('LCD reset conflicts with rotary input');
+  const biases=['encoder_a','encoder_b','encoder_sw'].map(name=>mapping.get(name).pull||'as-is');
+  if(new Set(biases).size!==1||!['as-is','pull-up','pull-down','disabled'].includes(biases[0]))throw new Error('Rotary requires one supported bias for all three inputs');
   const displays=spi.filter(entry=>entry.name==='display');
   if(displays.length!==1||displays[0].driver!=='gc9a01'||!/^\/dev\/spidev\d+\.\d+$/.test(displays[0].dev))throw new Error('Invalid display SPI configuration');
   const display=displays[0],bus=integer(display.bus,0,255,'SPI bus'),cs=integer(display.chip_select,0,255,'SPI chip select');
   if(display.dev!==`/dev/spidev${bus}.${cs}`||display.mode!=='0')throw new Error('SPI path/bus/CS must agree and mode must be 0');
   return {
-    display:{spi:display.dev,chip:dc.chip,dc:dc.line,hz:integer(display.max_speed_hz,1,100000000,'SPI speed')},
-    rotary:{chip:rotary[0].chip,clock:rotary[0].line,data:rotary[1].line,switch:rotary[2].line},
+    display:{spi:display.dev,chip:dc.chip,dc:dc.line,hz:integer(display.max_speed_hz,1,100000000,'SPI speed'),...(reset?{reset:reset.line}:{})},
+    rotary:{chip:rotary[0].chip,clock:rotary[0].line,data:rotary[1].line,switch:rotary[2].line,bias:biases[0]},
   };
 }
 if(require.main===module){

@@ -22,8 +22,22 @@ function fixture(t){
 test('GAR CSV values select nondefault GPIO/SPI wiring, including quoted descriptions',t=>{
   assert.deepEqual(loadHardware(fixture(t)),{
     display:{spi:'/dev/spidev2.1',chip:'/dev/gpiochip3',dc:8,hz:2000000},
-    rotary:{chip:'/dev/gpiochip3',clock:1,data:2,switch:3},
+    rotary:{chip:'/dev/gpiochip3',clock:1,data:2,switch:3,bias:'pull-up'},
   });
+});
+
+test('physical reset and input bias come from CSV and cannot share a pin',t=>{
+  const directory=fixture(t),gpio=path.join(directory,'gpio.csv');
+  const rows=fs.readFileSync(gpio,'utf8')+'lcd_rst,/dev/gpiochip3,9,output,display_ctrl,high,1,,,Reset\n';
+  fs.writeFileSync(gpio,rows);
+  assert.equal(loadHardware(directory).display.reset,9);
+  assert.equal(loadHardware(directory).rotary.bias,'pull-up');
+  fs.writeFileSync(gpio,rows.replace('gpiochip3,9,output','gpiochip3,1,output'));
+  assert.throws(()=>loadHardware(directory),/reset conflicts/);
+  fs.writeFileSync(gpio,rows.replace('gpiochip3,9,output','gpiochip3,8,output'));
+  assert.throws(()=>loadHardware(directory),/reset requires/);
+  fs.writeFileSync(gpio,rows.replace('pull-up','unsupported'));
+  assert.throws(()=>loadHardware(directory),/bias/);
 });
 test('conflicting, incomplete and inconsistent CSV assignments fail before device access',t=>{
   const directory=fixture(t),gpio=path.join(directory,'gpio.csv'),spi=path.join(directory,'spi.csv');
