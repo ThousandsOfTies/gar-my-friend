@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ロボの表情 — Face Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="presets.js"></script>
+  <script defer src="face.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <main>
+    <header><a class="brand" href="index.html">FACE LAB<span>ロボの顔</span></a><span class="edition">EXPRESSION STUDY / 01</span></header>
+    <section class="intro"><p class="eyebrow">まるい画面に、小さな気持ち。</p><h1>ロボの表情</h1><p>目・鼻・口・頬。シンプルな形から、動きのある顔へ。</p></section>
+    <div class="workspace">
+      <section class="stage" aria-label="表情プレビュー">
+        <div class="stage-top"><span class="live-dot"></span><span id="play-status">アニメーション中</span><span class="resolution">240 × 240</span></div>
+        <div class="display-wrap"><canvas id="face" width="240" height="240" role="img" aria-label="通常のロボットの顔">ロボットの表情プレビュー</canvas></div>
+        <div class="caption"><span id="expression-number">01</span><h2 id="expression-name" aria-live="polite">通常</h2><span id="expression-en">NEUTRAL</span></div>
+        <div class="stage-actions"><button type="button" id="pause">一時停止</button><button type="button" id="blink">まばたき</button><button type="button" id="demo" aria-pressed="false">順番に見る</button></div>
+        <p class="stage-note">GC9A01向けの画面試作 · 実機は未接続</p>
+      </section>
+      <section class="editor" aria-label="表情と動きの設定">
+        <div class="section-heading"><h2>気持ちを選ぶ</h2><span>8 EXPRESSIONS</span></div>
+        <div id="expressions" class="expressions" role="group" aria-label="表情"></div>
+        <div class="motion">
+          <div class="section-heading"><h2>動きをつける</h2></div>
+          <label class="switch-row"><span>自然なまばたき<small>ときどき、目を閉じる</small></span><input id="auto-blink" type="checkbox" checked></label>
+          <label class="switch-row"><span>おしゃべり<small>口の動きのデモ（音声なし）</small></span><input id="talk" type="checkbox"></label>
+          <label class="range-label" for="duration"><span>表情が変わる時間</span><output id="duration-value" for="duration">450 ms</output></label>
+          <input id="duration" type="range" min="100" max="1200" step="50" value="450">
+          <div class="range-ends"><span>きびきび</span><span>ゆっくり</span></div>
+        </div>
+        <div class="save-row"><span id="save-status" aria-live="polite">気に入った設定を、次の試作へ。</span><button id="save" type="button">設定を保存 ↓</button></div>
+      </section>
+    </div>
+    <footer><span>幾何図形で描く、ロボットの顔。</span><span>PROTOTYPE 01</span></footer>
+  </main>
+</body>
+</html>

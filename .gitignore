@@ -1,0 +1,9 @@
+node_modules/
+.simulator/
+.gar/
+simulator/gar-components/
+test-results/
+artifacts/
+build/
+__pycache__/
+*.py[cod]
