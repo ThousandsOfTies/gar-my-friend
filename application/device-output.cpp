@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <iostream>
 #include <linux/gpio.h>
-#include <linux/i2c-dev.h>
 #include <linux/spi/spidev.h>
 #include <sstream>
 #include <stdexcept>
@@ -40,7 +39,7 @@ struct Surface {
     }
 };
 struct Devices {
-    int spi=-1,i2c=-1,chip=-1,dc=-1;
+    int spi=-1,chip=-1,dc=-1;
     Devices(){
         spi=open("/dev/spidev0.0",O_WRONLY);check(spi>=0,"open SPI");
         uint8_t mode=0,bits=8;uint32_t hz=24000000;
@@ -48,19 +47,12 @@ struct Devices {
         chip=open("/dev/gpiochip0",O_RDONLY);check(chip>=0,"open GPIO");
         gpio_v2_line_request request{};request.offsets[0]=16;request.num_lines=1;request.config.flags=GPIO_V2_LINE_FLAG_OUTPUT;strcpy(request.consumer,"GarMyFriend LCD DC");
         check(ioctl(chip,GPIO_V2_GET_LINE_IOCTL,&request)>=0,"request DC line");dc=request.fd;
-        i2c=open("/dev/i2c-1",O_RDWR);check(i2c>=0,"open I2C");check(ioctl(i2c,I2C_SLAVE,0x40)>=0,"select PWM");
-        reg(0x00,0x10);reg(0xfe,121);reg(0x00,0x20);
         uint8_t format=0x55,memory=0;command(0x3a,&format,1);command(0x36,&memory,1);
     }
-    ~Devices(){for(int fd:{dc,chip,spi,i2c})if(fd>=0)close(fd);}
+    ~Devices(){for(int fd:{dc,chip,spi})if(fd>=0)close(fd);}
     void dcValue(bool value){gpio_v2_line_values values{};values.mask=1;values.bits=value?1:0;check(ioctl(dc,GPIO_V2_LINE_SET_VALUES_IOCTL,&values)>=0,"set DC");}
     void transfer(const uint8_t* bytes,size_t length){while(length){size_t chunk=std::min(length,(size_t)4096);ssize_t result=write(spi,bytes,chunk);check(result>0,"write SPI");bytes+=result;length-=result;}}
     void command(uint8_t cmd,const uint8_t* data=nullptr,size_t length=0){dcValue(false);transfer(&cmd,1);if(length){dcValue(true);transfer(data,length);}}
-    void reg(uint8_t address,uint8_t value){uint8_t data[2]={address,value};check(write(i2c,data,2)==2,"write PWM register");}
-    void servos(const std::array<float,6>& angles,bool stopped){
-        for(int channel=0;channel<6;++channel){uint16_t ticks=(uint16_t)std::lround((500+(angles[channel]+90)/180*2000)*4096/20000);uint8_t data[5]={(uint8_t)(6+4*channel),0,0,(uint8_t)ticks,(uint8_t)((ticks>>8)&15)};
-            if(stopped){data[3]=0;data[4]=0x10;}check(write(i2c,data,5)==5,"write PWM channel");}
-    }
     void frame(const Surface& surface){
         const uint8_t window[4]={0,0,0,239};command(0x2a,window,4);command(0x2b,window,4);command(0x2c);dcValue(true);
         std::array<uint8_t,240*240*2> bytes;for(size_t i=0;i<surface.pixels.size();++i){bytes[2*i]=surface.pixels[i]>>8;bytes[2*i+1]=surface.pixels[i]&255;}transfer(bytes.data(),bytes.size());
@@ -69,12 +61,12 @@ struct Devices {
 int main(){try{
     Devices devices;Surface surface;std::string line;uint64_t frames=0;
     while(std::getline(std::cin,line)){
-        std::istringstream input(line);roboface::Pose pose{};roboface::Effects effects;std::array<float,6> angles{};int stopped=0;
+        std::istringstream input(line);roboface::Pose pose{};roboface::Effects effects;
         input>>pose.eyeRx>>pose.eyeRy>>pose.eyeY>>pose.leftOpen>>pose.rightOpen>>pose.happyEye>>pose.tilt>>pose.mouthY>>pose.mouthW>>pose.mouthCurve>>pose.mouthOpen>>pose.cheek;
-        input>>effects.gazeX>>effects.gazeY>>effects.blink>>effects.talkOpen;for(auto& angle:angles)input>>angle;input>>stopped;
+        input>>effects.gazeX>>effects.gazeY>>effects.blink>>effects.talkOpen;
         if(!input)throw std::runtime_error("invalid device frame command");
         surface.pixels.fill(roboface::rgb565(roboface::kBackgroundRgb));roboface::render(surface,pose,effects);
-        devices.servos(angles,stopped!=0);devices.frame(surface);
+        devices.frame(surface);
         ++frames;
         std::cout<<"{\"frames\":"<<frames<<",\"spiBytes\":"<<frames*115211<<"}"<<std::endl;
     }
