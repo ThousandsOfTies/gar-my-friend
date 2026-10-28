@@ -59,11 +59,34 @@ test('invalid commands never partially mutate state', () => {
     { type: 'motion', autoBlink: 'true' }, { type: 'joint', id: 'leftHip', angle: 80 },
     { type: 'joint', id: 'leftKnee', angle: -1 }, { type: 'reset', surprise: true },
     { type: 'pause', value: 1 }, { type: 'step', ms: 50 },
+    {type:'rotary',action:'rotate',direction:0}, {type:'rotary',action:'rotate'},
+    {type:'rotary',action:'press',direction:1}, {type:'rotary',action:'unknown'},
   ]) {
     const before = meaningfulState(runtime);
     assert.throws(() => runtime.command(command), ValidationError);
     assert.deepEqual(meaningfulState(runtime), before);
   }
+});
+
+test('rotary wraps expressions from the current selection and records actual input',()=>{
+  const runtime=new RobotRuntime();
+  runtime.command({type:'rotary',action:'rotate',direction:-1});assert.equal(runtime.state().expression,'wink');
+  runtime.command({type:'rotary',action:'rotate',direction:1});assert.equal(runtime.state().expression,'neutral');
+  runtime.command({type:'expression',value:'sad'});
+  runtime.command({type:'rotary',action:'rotate',direction:1});assert.equal(runtime.state().expression,'angry');
+  runtime.command({type:'scenario',id:'curious'});
+  runtime.command({type:'record',action:'start'});
+  runtime.command({type:'rotary',action:'rotate',direction:-1});
+  assert.equal(runtime.state().scenario.running,false);
+  runtime.advance(50);runtime.command({type:'rotary',action:'press'});runtime.advance(70);
+  assert.ok(runtime.state().effects.blink>.5);
+  runtime.command({type:'record',action:'stop'});
+  const saved=runtime.exportRecording();
+  assert.ok(saved.commands.every(entry=>entry.command.type==='rotary'));
+  const replay=new RobotRuntime();replay.command({type:'replay',recording:saved});replay.advance(saved.durationMs);
+  assert.deepEqual(meaningfulState(replay),meaningfulState(runtime));
+  runtime.command({type:'stop'});runtime.command({type:'rotary',action:'rotate',direction:1});
+  assert.equal(runtime.state().stopped,true,'Changing a face must not release the latched stop');
 });
 
 test('pausing freezes simulated time and step advances only while paused', () => {
