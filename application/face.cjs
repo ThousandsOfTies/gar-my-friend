@@ -10,7 +10,7 @@ const {loadHardware}=require('./hardware.cjs');
 // the GPIO and SPI device drivers are required, with the confirmed pin mapping.
 if(process.platform!=='linux')throw new Error('The face application requires Linux GPIO/SPI devices');
 const root=path.resolve(__dirname,'..'),face=new FaceRuntime();
-const hardware=loadHardware(process.env.GAR_HARDWARE_DIR||path.join(root,'hardware'));
+const hardware=loadHardware(process.env.GAR_HARDWARE_DIR);
 let output,input,timer,closed=false;
 function close(error){
   if(closed)return;closed=true;clearInterval(timer);input?.close();output?.close();

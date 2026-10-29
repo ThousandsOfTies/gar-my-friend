@@ -1,5 +1,5 @@
 #include "../firmware/FaceCore.h"
-#include "../sources/gar-tools/targets/linux-device/runtime/gc9a01-output/gc9a01_init.h"
+#include "gc9a01-output/gc9a01_init.h"
 #include <algorithm>
 #include <array>
 #include <cerrno>

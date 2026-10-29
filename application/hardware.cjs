@@ -2,7 +2,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 
-// Product's two-device configuration, using the GAR hardware CSV headers.
+// The Product supplies the two-device configuration, using the GAR hardware CSV headers.
 function readCsv(file){
   const text=fs.readFileSync(file,'utf8').replace(/^\uFEFF/,'');
   const rows=[];let row=[],value='',quoted=false,afterQuote=false;
@@ -33,6 +33,7 @@ function integer(value,min,max,label){
   return Number(value);
 }
 function loadHardware(directory){
+  if(!directory)throw new Error('GAR_HARDWARE_DIR must select the Product GPIO/SPI CSV directory');
   const gpio=readCsv(path.join(directory,'gpio.csv')),spi=readCsv(path.join(directory,'spi.csv'));
   const mapping=new Map();
   for(const entry of gpio){if(mapping.has(entry.name))throw new Error('Duplicate GPIO name');mapping.set(entry.name,entry);}
@@ -61,7 +62,7 @@ function loadHardware(directory){
 }
 if(require.main===module){
   try{
-    const hardware=loadHardware(process.env.GAR_HARDWARE_DIR||path.resolve(__dirname,'../hardware'));
+    const hardware=loadHardware(process.env.GAR_HARDWARE_DIR);
     const args=process.argv.slice(2),field=args[1];
     if(args.length!==2||args[0]!=='--value'||!['spi','chip','dc','hz'].includes(field))throw new Error('Usage: node application/hardware.cjs --value spi|chip|dc|hz');
     console.log(hardware.display[field]);

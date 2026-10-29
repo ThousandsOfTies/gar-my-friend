@@ -1,0 +1,17 @@
+{
+  "name": "gar-my-friend",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Portable GarMyFriend face behavior with Linux GPIO and SPI output",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node tools/build-preview.cjs",
+    "test": "node --test tests/runtime.cjs tests/hardware.cjs",
+    "test:preview": "node tests/preview.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.64.1"
+  }
+}

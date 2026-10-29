@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'test-results');
 fs.mkdirSync(output, { recursive: true });
 (async () => {
-  const browser = await chromium.launch({ channel: 'msedge', headless: true });
+  const browser = await chromium.launch({ channel: process.platform === 'win32' ? 'msedge' : undefined, headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1120, height: 960 }, deviceScaleFactor: 1 });
     const errors = [];

@@ -1,0 +1,23 @@
+name: gar-my-friend
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  application:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: npm test
+      - uses: actions/checkout@v7
+        with:
+          repository: ThousandsOfTies/gar-tools
+          ref: f47c1797c51f6faa8d5086db5ea50f0b0e9ecda2
+          path: .ci/gar-tools
+      - name: Build Linux GPIO/SPI application
+        run: |
+          GAR_TOOLS_ROOT="$PWD/.ci/gar-tools" GAR_BUILD_DIR="$PWD/build" sh tools/build-native.sh
+          file build/device-output build/gar_rotary_input
