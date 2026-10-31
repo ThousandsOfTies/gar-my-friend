@@ -51,13 +51,15 @@ function loadHardware(directory){
   if(reset&&rotary.some(entry=>entry.chip===reset.chip&&entry.line===reset.line))throw new Error('LCD reset conflicts with rotary input');
   const biases=['encoder_a','encoder_b','encoder_sw'].map(name=>mapping.get(name).pull||'as-is');
   if(new Set(biases).size!==1||!['as-is','pull-up','pull-down','disabled'].includes(biases[0]))throw new Error('Rotary requires one supported bias for all three inputs');
+  const debounce=['encoder_a','encoder_b','encoder_sw'].map(name=>integer(mapping.get(name).debounce_us||'0',0,1000000,'rotary debounce period'));
+  if(new Set(debounce).size!==1)throw new Error('Rotary requires one debounce period for all three inputs');
   const displays=spi.filter(entry=>entry.name==='display');
   if(displays.length!==1||displays[0].driver!=='gc9a01'||!/^\/dev\/spidev\d+\.\d+$/.test(displays[0].dev))throw new Error('Invalid display SPI configuration');
   const display=displays[0],bus=integer(display.bus,0,255,'SPI bus'),cs=integer(display.chip_select,0,255,'SPI chip select');
   if(display.dev!==`/dev/spidev${bus}.${cs}`||display.mode!=='0')throw new Error('SPI path/bus/CS must agree and mode must be 0');
   return {
     display:{spi:display.dev,chip:dc.chip,dc:dc.line,hz:integer(display.max_speed_hz,1,100000000,'SPI speed'),...(reset?{reset:reset.line}:{})},
-    rotary:{chip:rotary[0].chip,clock:rotary[0].line,data:rotary[1].line,switch:rotary[2].line,bias:biases[0]},
+    rotary:{chip:rotary[0].chip,clock:rotary[0].line,data:rotary[1].line,switch:rotary[2].line,bias:biases[0],...(debounce[0]?{debounceUs:debounce[0]}:{})},
   };
 }
 if(require.main===module){

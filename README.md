@@ -44,6 +44,13 @@ node sources/gar-my-friend/application/face.cjs
 `GAR_BIN_DIR` を省略した場合は、このアプリの `build/` を使います。
 ARM64向けのコンパイラー選択や自動起動サービスもProductが担当します。
 
+Productの`gpio.csv`には任意の`debounce_us`列を追加できます。
+`encoder_a`・`encoder_b`・`encoder_sw`へ同じ0〜1000000のマイクロ秒値を指定すると、
+入力アダプターが共有読取の`--debounce-us`へ渡し、GPIOを要求するときにOSへ設定します。
+列の省略・空欄・0は従来どおりデバウンスを要求しません。
+値はProductの配線プロファイルが所有し、アプリやドライバーにボード固有の値を埋め込みません。
+この設定を使うProductは、`--debounce-us`に対応したgar-toolsのコミットも固定してください。
+
 WebPanelはアプリを起動せず、仮想ドライバの画素と入力信号を中継します。
 WebPanelを終了しても、このアプリのGPIO入力とSPI描画は継続します。
 

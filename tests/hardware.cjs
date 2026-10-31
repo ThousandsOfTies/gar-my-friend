@@ -49,3 +49,24 @@ test('conflicting, incomplete and inconsistent CSV assignments fail before devic
   fs.writeFileSync(spi,goodSpi.replace('spidev2.1','spidev0.0'));assert.throws(()=>loadHardware(directory),/path\/bus\/CS/);
   fs.writeFileSync(spi,goodSpi.replace('2000000','0'));assert.throws(()=>loadHardware(directory),/speed/);
 });
+
+test('optional kernel debounce comes from CSV and rejects invalid or mixed periods',t=>{
+  const directory=fixture(t),gpio=path.join(directory,'gpio.csv');
+  const original=fs.readFileSync(gpio,'utf8');
+  // This fixture contains quoted newlines, so append the optional column before
+  // the quoted descriptions rather than splitting its records by newline.
+  const withPeriod=value=>original.replace('sim_control,description','sim_control,debounce_us,description')
+    .replace('0,,,"LCD','0,,,,"LCD').replaceAll('pull-up,,"',`pull-up,,${value},"`);
+  fs.writeFileSync(gpio,withPeriod('1000'));
+  assert.equal(loadHardware(directory).rotary.debounceUs,1000);
+  fs.writeFileSync(gpio,withPeriod('0'));
+  assert.equal(loadHardware(directory).rotary.debounceUs,undefined);
+  for(const value of ['-1','1.5','1000001','bad']){
+    fs.writeFileSync(gpio,withPeriod(value));
+    assert.throws(()=>loadHardware(directory),/debounce/);
+  }
+  fs.writeFileSync(gpio,withPeriod('1000').replace('pull-up,,1000','pull-up,,2000'));
+  assert.throws(()=>loadHardware(directory),/one debounce period/);
+  fs.writeFileSync(gpio,original);
+  assert.equal(loadHardware(directory).rotary.debounceUs,undefined);
+});

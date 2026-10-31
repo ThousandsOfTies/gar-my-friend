@@ -10,6 +10,7 @@ class RotaryInput {
     this.chip=wiring.chip;this.lines=[wiring.clock,wiring.data,wiring.switch];
     const args=['--chip',wiring.chip,'--clock',String(wiring.clock),'--data',String(wiring.data),'--switch',String(wiring.switch)];
     if(wiring.bias&&wiring.bias!=='as-is')args.push('--bias',wiring.bias);
+    if(wiring.debounceUs)args.push('--debounce-us',String(wiring.debounceUs));
     this.child=spawn(path.join(process.env.GAR_BIN_DIR||path.join(root,'build'),'gar_rotary_input'),args,{cwd:root,stdio:['ignore','pipe','pipe']});
     let pending='';
     this.child.stdout.setEncoding('utf8');
