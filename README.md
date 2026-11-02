@@ -96,3 +96,14 @@ CSV paths. The Product enables this only in its dedicated simulator today.
 Speaking state is renewed by the playback adapter and expires without renewal.
 No API key or audio is accepted by the local command socket. Browser/ALSA audio
 and Gemini connection are replaceable adapters, not a second face renderer.
+
+`tools/live.cjs check|start` adds opt-in physical USB/Gemini conversation. The
+Product injects hardware/tools/binary paths; `face.cjs` starts Live only with
+`GAR_FRIEND_LIVE=1`. `live-session.cjs` coordinates raw ALSA and the same
+DOM-independent Gemini protocol used by the browser. `GEMINI_API_KEY` is passed
+at launch and removed before child processes start. Face-only startup is unchanged.
+Body tools require explicit `--body --from stand|lie`; without that, only voice
+and expression tools are available. Default half-duplex suppresses microphone
+upload during playback and a 250 ms echo tail; `--duplex` enables simultaneous
+audio when the caller has validated echo cancellation. On errors/shutdown,
+audio and any enabled motion stop. No key or recording is saved.
