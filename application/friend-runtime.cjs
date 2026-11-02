@@ -4,7 +4,7 @@ const {reactions}=require('../shared/reactions.json');
 
 /** The application coordinates face, body and speech, independently of a panel. */
 class FriendRuntime {
-  constructor({face=new FaceRuntime(),servo=null,speech=null,onError=console.error}={}){this.face=face;this.servo=servo;this.speech=speech;this.onError=onError;this.closed=false;}
+  constructor({face=new FaceRuntime(),servo=null,speech=null,onError=console.error}={}){this.face=face;this.servo=servo;this.speech=speech;this.onError=onError;this.closed=false;this.bodyMode='stop';this.bodyError=null;}
   input(event){
     if(this.closed)return;
     this.face.input(event);
@@ -19,8 +19,12 @@ class FriendRuntime {
   async command(mode, options){
     if(this.closed)return false;
     if(!this.servo)throw new Error('Servo output is disabled');
-    return this.servo.perform(mode, options);
+    if(mode!=='stop'&&(this.servo.current||this.servo.stopping))throw new Error('Body motion is already running');
+    this.bodyMode=mode;this.bodyError=null;
+    try{return await this.servo.perform(mode, options);}
+    catch(error){if(this.bodyMode!=='stop')this.bodyError=error.message;throw error;}
   }
+  status(){return {expression:this.face.expressionId,speaking:this.face.speaking,body:{ready:!!this.servo,running:!!this.servo?.current,stopping:!!this.servo?.stopping,mode:this.bodyMode,error:this.bodyError}};}
   frame(){return this.face.frame();}
   async close(){if(this.closed)return;this.closed=true;await Promise.all([this.servo?.close(),this.speech?.close()].map(promise=>Promise.resolve(promise).catch(this.onError)));}
 }

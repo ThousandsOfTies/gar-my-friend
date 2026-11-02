@@ -84,3 +84,15 @@ Recording is bounded to 1–15 seconds, 16kHz mono PCM. Only successful WAVs are
 published, existing files are preserved, and cancellation discards partial data.
 The CLI does not record continuously, recognize speech, upload audio, or actuate
 the body. Its standalone replay/speech is separate from the running face service.
+
+The optional `GAR_FRIEND_CONTROL_SOCKET` enables a private Linux Unix socket for
+semantic commands against the running application. `friend-control.cjs` owns
+Gemini-independent tool schemas/instructions and execution: `change_emotion`,
+`move_body`, and `get_friend_state`. Expression candidates come from canonical
+expression data. Body tools require an explicit starting pose and await actual
+native completion; nonblocking manual commands use the same ServoOutput.
+`GAR_EFFECTS_DIR` optionally selects effect configuration separately from GPIO/SPI
+CSV paths. The Product enables this only in its dedicated simulator today.
+Speaking state is renewed by the playback adapter and expires without renewal.
+No API key or audio is accepted by the local command socket. Browser/ALSA audio
+and Gemini connection are replaceable adapters, not a second face renderer.

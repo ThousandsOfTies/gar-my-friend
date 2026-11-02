@@ -10,11 +10,16 @@ class FaceRuntime {
   }
   get expressionId(){return expressions[this.index].id;}
   setSpeaking(value){this.speaking=Boolean(value);}
+  select(id){
+    const index=expressions.findIndex(expression=>expression.id===id);
+    if(index<0)throw new Error('Unknown expression');
+    this.index=index;
+    this.transition={from:copy(this.pose),to:copy(expressions[index].pose),start:this.timeMs};
+  }
   input({action,direction}){
     if(action==='rotate'){
       if(direction!==1&&direction!==-1)throw new Error('Invalid rotary direction');
-      this.index=(this.index+direction+expressions.length)%expressions.length;
-      this.transition={from:copy(this.pose),to:copy(expressions[this.index].pose),start:this.timeMs};
+      this.select(expressions[(this.index+direction+expressions.length)%expressions.length].id);
     }else if(action==='press'){
       this.blinkAt=this.timeMs;this.nextBlink=this.timeMs+3000;
     }else throw new Error('Invalid rotary action');
