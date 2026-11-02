@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "node tools/build-preview.cjs",
-    "test": "node --test tests/runtime.cjs tests/hardware.cjs tests/effects.cjs",
+    "test": "node --test tests/runtime.cjs tests/hardware.cjs tests/effects.cjs tests/body.cjs",
     "test:preview": "node tests/preview.cjs"
   },
   "devDependencies": {

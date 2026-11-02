@@ -15,6 +15,12 @@ class FriendRuntime {
     }
   }
   advance(ms){this.face.advance(ms);}
+  // Local controls and future LLM tools share a bounded semantic interface.
+  async command(mode, options){
+    if(this.closed)return false;
+    if(!this.servo)throw new Error('Servo output is disabled');
+    return this.servo.perform(mode, options);
+  }
   frame(){return this.face.frame();}
   async close(){if(this.closed)return;this.closed=true;await Promise.all([this.servo?.close(),this.speech?.close()].map(promise=>Promise.resolve(promise).catch(this.onError)));}
 }

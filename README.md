@@ -62,3 +62,14 @@ WebPanelを終了しても、このアプリのGPIO入力とSPI描画は継続�
 ## Optional body and Japanese speech
 
 Initialize with `git submodule update --init --recursive`. `dependencies/gar-servo-pet` pins the existing C servo controller; it is not copied into this application. Set `GAR_BUILD_SERVO=1` in the Product build environment to compile `gar-servoctl`. Product CSVs own calibration, I2C assignment and output enablement. Missing `effects.csv` preserves face-only operation. `FriendRuntime` coordinates selected expression text, bounded neutral output and playback-time mouth animation. Open JTalk/dictionary/voice and ALSA are external optional runtime dependencies. `tools/say.cjs` tests speech from the selected Product CSVs.
+
+`tools/body.cjs forward|backward|stop|lie|stand` exposes bounded body modes.
+For motion, explicitly supply `--from stand|lie`; the mechanism must actually be
+at that pose. `--dry-run` prints keyframes without device access or native child
+processes. Product `body-motions.csv` owns role-based keyframes and timing; the
+application maps them to calibration-file order for the native `sequence`
+command. `FriendRuntime.command(mode, {from})` exposes the same semantic API for
+local controls and future LLM tools. Stop preempts active work; modes are never
+queued or repeated forever. Every native action ends FULL_OFF, so no physical
+pose is inferred after output is disabled. Ground locomotion and load-bearing
+poses require physical tuning; these patterns alone do not validate either.
