@@ -54,7 +54,7 @@ async function execute(friend,value){
 
 function requestControl(socket,value,{timeoutMs=38000}={}){
   return new Promise((resolve,reject)=>{
-    const connection=net.createConnection(socket);let text='',done=false;
+    const connection=net.createConnection(socket);connection.setEncoding('utf8');let text='',done=false;
     const finish=(error,result)=>{if(done)return;done=true;connection.destroy();error?reject(error):resolve(result);};
     connection.setTimeout(timeoutMs,()=>finish(new Error('Application command timed out')));
     connection.on('connect',()=>connection.write(JSON.stringify(value)+'\n'));
@@ -76,6 +76,7 @@ async function startControl(socket,friend){
   }catch(error){if(error.code!=='ENOENT')throw error;}
   let speakingTimer;const peers=new Set();
   const server=net.createServer(peer=>{
+    peer.setEncoding('utf8');
     peers.add(peer);peer.on('error',()=>{});peer.on('close',()=>peers.delete(peer));peer.setTimeout(40000,()=>peer.destroy());
     let text='',received=false;
     peer.on('data',chunk=>{
