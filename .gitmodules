@@ -1,0 +1,3 @@
+[submodule "dependencies/gar-servo-pet"]
+	path = dependencies/gar-servo-pet
+	url = https://github.com/ThousandsOfTies/gar-servo-pet.git

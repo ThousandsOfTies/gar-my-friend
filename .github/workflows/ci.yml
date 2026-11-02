@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          submodules: recursive
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -19,5 +21,5 @@ jobs:
           path: .ci/gar-tools
       - name: Build Linux GPIO/SPI application
         run: |
-          GAR_TOOLS_ROOT="$PWD/.ci/gar-tools" GAR_BUILD_DIR="$PWD/build" sh tools/build-native.sh
-          file build/device-output build/gar_rotary_input
+          GAR_BUILD_SERVO=1 GAR_TOOLS_ROOT="$PWD/.ci/gar-tools" GAR_BUILD_DIR="$PWD/build" sh tools/build-native.sh
+          file build/device-output build/gar_rotary_input build/gar-servoctl

@@ -58,3 +58,7 @@ WebPanelを終了しても、このアプリのGPIO入力とSPI描画は継続�
 
 元のGarMyFriendからアプリに関係するファイルの変更履歴を引き継いでいます。
 機種別Productは `GarMyFriend-OrangePiZero2W` に改名しました。
+
+## Optional body and Japanese speech
+
+Initialize with `git submodule update --init --recursive`. `dependencies/gar-servo-pet` pins the existing C servo controller; it is not copied into this application. Set `GAR_BUILD_SERVO=1` in the Product build environment to compile `gar-servoctl`. Product CSVs own calibration, I2C assignment and output enablement. Missing `effects.csv` preserves face-only operation. `FriendRuntime` coordinates selected expression text, bounded neutral output and playback-time mouth animation. Open JTalk/dictionary/voice and ALSA are external optional runtime dependencies. `tools/say.cjs` tests speech from the selected Product CSVs.

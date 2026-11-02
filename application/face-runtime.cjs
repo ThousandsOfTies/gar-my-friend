@@ -5,9 +5,11 @@ const copy=value=>structuredClone(value);
 /** Application behavior only. No HTTP, WebPanel or simulator dependencies. */
 class FaceRuntime {
   constructor(){
-    this.timeMs=0;this.index=0;this.pose=copy(expressions[0].pose);
+    this.timeMs=0;this.index=0;this.pose=copy(expressions[0].pose);this.speaking=false;
     this.transition={from:this.pose,to:this.pose,start:0};this.blinkAt=-10000;this.nextBlink=2400;
   }
+  get expressionId(){return expressions[this.index].id;}
+  setSpeaking(value){this.speaking=Boolean(value);}
   input({action,direction}){
     if(action==='rotate'){
       if(direction!==1&&direction!==-1)throw new Error('Invalid rotary direction');
@@ -26,7 +28,7 @@ class FaceRuntime {
   }
   frame(){
     const elapsed=this.timeMs-this.blinkAt;
-    return {pose:copy(this.pose),effects:{gazeX:0,gazeY:0,talk:0,blink:elapsed>=0&&elapsed<180?Math.sin(Math.PI*elapsed/180):0}};
+    return {pose:copy(this.pose),effects:{gazeX:0,gazeY:0,talk:this.speaking?0.35+0.65*Math.abs(Math.sin(this.timeMs/95)):0,blink:elapsed>=0&&elapsed<180?Math.sin(Math.PI*elapsed/180):0}};
   }
 }
 module.exports={FaceRuntime};

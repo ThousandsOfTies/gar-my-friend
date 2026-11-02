@@ -17,3 +17,5 @@ and simulator composition belong to a Product such as
 The Product supplies its pinned gar-tools checkout through `GAR_TOOLS_ROOT`
 when building, `GAR_BUILD_DIR` for build output, and `GAR_BIN_DIR` at runtime.
 Keep generic hardware decoding and reusable drivers in gar-tools.
+
+Optional face/body/speech coordination belongs in application/. Reuse the pinned `dependencies/gar-servo-pet` native controller without removing its guards. Product CSVs select outputs and calibration; missing effects.csv must remain face-only. Speech synthesis uses piped text and argument arrays, never shell execution. Voice/dictionary files are external.

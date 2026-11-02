@@ -70,4 +70,4 @@ if(require.main===module){
     console.log(hardware.display[field]);
   }catch(error){console.error(error.message);process.exitCode=1;}
 }
-module.exports={loadHardware};
+module.exports={loadHardware,readCsv,integer};
