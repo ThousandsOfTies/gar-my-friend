@@ -2,6 +2,7 @@
 const fs=require('node:fs');
 const path=require('node:path');
 const {readCsv,integer}=require('./hardware.cjs');
+const {loadAudioConfig}=require('./audio-config.cjs');
 
 /** Optional Product outputs. Older face-only Products need no new config. */
 function loadEffects(directory){
@@ -20,10 +21,12 @@ function loadEffects(directory){
     result.servo={i2c:path.join(directory,'i2c.csv'),calibration:path.join(directory,'servo-calibration.csv'),holdMs:integer(servo.hold_ms,1,1000,'servo hold'),stopFile:servo.stop_file,directory};
   }
   if(speech?.enabled==='1'){
-    if(!speech.dictionary||!speech.voice||!speech.device||!/^[a-zA-Z0-9_:,=.-]{1,128}$/.test(speech.device))throw new Error('Speech needs dictionary, voice and ALSA device');
+    // New Products share one playback selection with WAV replay; older Products retain device.
+    const device=fs.existsSync(path.join(directory,'audio.csv'))?loadAudioConfig(directory).playback:speech.device;
+    if(!speech.dictionary||!speech.voice||!device||!/^[a-zA-Z0-9_:,=.-]{1,128}$/.test(device))throw new Error('Speech needs dictionary, voice and an explicit ALSA playback device');
     const speed=Number(speech.speed);
     if(!Number.isFinite(speed)||speed<0.5||speed>2)throw new Error('Speech speed must be between 0.5 and 2');
-    result.speech={dictionary:speech.dictionary,voice:speech.voice,device:speech.device,speed};
+    result.speech={dictionary:speech.dictionary,voice:speech.voice,device,speed};
   }
   return result;
 }

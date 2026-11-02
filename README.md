@@ -73,3 +73,14 @@ local controls and future LLM tools. Stop preempts active work; modes are never
 queued or repeated forever. Every native action ends FULL_OFF, so no physical
 pose is inferred after output is disabled. Ground locomotion and load-bearing
 poses require physical tuning; these patterns alone do not validate either.
+
+`tools/audio.cjs devices|check|record|play|say` provides explicit local USB-audio
+checks on Linux. The Product sets `GAR_HARDWARE_DIR` and `GAR_TOOLS_ROOT` and
+packages the shared `targets/linux-device/runtime/alsa-audio/audio.cjs` adapter.
+Product `audio.csv` contains `direction,device` rows for `capture` and `playback`.
+Empty devices disable commands until setup. When this CSV exists, speech shares
+its playback selection; older Products without it retain effects.csv's device.
+Recording is bounded to 1–15 seconds, 16kHz mono PCM. Only successful WAVs are
+published, existing files are preserved, and cancellation discards partial data.
+The CLI does not record continuously, recognize speech, upload audio, or actuate
+the body. Its standalone replay/speech is separate from the running face service.
