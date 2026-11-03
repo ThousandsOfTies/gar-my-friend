@@ -13,7 +13,9 @@ async function startLive(friend,{apiKey,onFailure=console.error,signal}={}){
   const {AlsaDuplex}=require(path.join(process.env.GAR_TOOLS_ROOT,'targets/linux-device/runtime/alsa-audio/duplex.cjs'));
   const {GeminiLive}=await import(pathToFileURL(path.join(process.env.GAR_TOOLS_ROOT,'web-simulator/components/gemini-live.mjs')).href);
   const allowBody=process.env.GAR_FRIEND_LIVE_BODY==='1';
-  const createSession=callbacks=>new LiveSession({friend,audio:new AlsaDuplex(loadAudioConfig(process.env.GAR_HARDWARE_DIR)),
+  const playbackLeadInMs=Number(process.env.GAR_AUDIO_PLAYBACK_LEAD_IN_MS??0);
+  if(!Number.isInteger(playbackLeadInMs)||playbackLeadInMs<0||playbackLeadInMs>1000)throw new Error('GAR_AUDIO_PLAYBACK_LEAD_IN_MS must be 0..1000');
+  const createSession=callbacks=>new LiveSession({friend,audio:new AlsaDuplex({...loadAudioConfig(process.env.GAR_HARDWARE_DIR),playbackLeadInMs}),
     createClient:options=>new GeminiLive(options),allowBody,from:process.env.GAR_FRIEND_START_POSE,duplex:process.env.GAR_FRIEND_LIVE_DUPLEX==='1',...callbacks});
   const onStatus=state=>console.error(`Live audio: ${state}`);
   if(brokerFile){
