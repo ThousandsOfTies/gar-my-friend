@@ -40,10 +40,10 @@ class LiveSession{
       this.onStatus('connecting');
       await this.audio.start();if(this.closed)return;
       await this.client.connect({apiKey,ephemeralToken,apiVersion,model,voice,instruction:config.instruction+(this.allowBody?'':'\n今回は身体操作は無効です。身体を動かしたとは説明しません。'),tools:config.tools.filter(tool=>this.allowBody||tool.name!=='move_body')});
-      if(this.closed)return;this.onStatus(this.muted?'muted':'listening');this.client.text(this.muted?'短く挨拶して、マイク送信は停止中と伝えてください。':'こんにちは。短く自己紹介して挨拶してください。');
+      if(this.closed)return;this.onStatus('ready');this.onStatus(this.muted?'muted':'listening');this.client.text(this.muted?'短く挨拶して、マイク送信は停止中と伝えてください。':'こんにちは。短く自己紹介して挨拶してください。');
     }catch(error){await this.close();throw error;}
   }
-  setMuted(value){this.muted=Boolean(value);if(this.muted)this.client.audioEnd();this.onStatus(this.muted?'muted':'listening');}
+  setMuted(value){this.muted=Boolean(value);if(!this.started)return;if(this.muted)this.client.audioEnd();this.onStatus(this.muted?'muted':'listening');}
   fail(error){if(this.closed)return;this.close().then(()=>this.onFailure(error),()=>this.onFailure(error));}
   async close(){
     if(this.closed)return this.closing;this.closed=true;this.client.stop();for(const remove of this.listeners)remove();this.friend.face.setSpeaking(false);
