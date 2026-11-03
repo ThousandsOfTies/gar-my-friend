@@ -175,7 +175,8 @@ void render(Surface& surface, const Pose& pose, const Effects& effects = Effects
     // Overlapping ivory lobes leave a soft V-shaped penguin forehead.
     surface.fillEllipse(83.0f, 112.0f, 54.0f, 77.0f, face);
     surface.fillEllipse(157.0f, 112.0f, 54.0f, 77.0f, face);
-    surface.fillEllipse(120.0f, 155.0f, 80.0f, 59.0f, face);
+    // Broaden the lower mask so both rosy cheeks sit inside a full white face.
+    surface.fillEllipse(120.0f, 148.0f, 104.0f, 74.0f, face);
     const std::uint16_t blush = rgb565(blendRgb(palette.face, palette.cheek, pose.cheek));
     surface.fillEllipse(53.0f, 131.0f, 13.0f, 8.0f, blush);
     surface.fillEllipse(187.0f, 131.0f, 13.0f, 8.0f, blush);

@@ -27,7 +27,8 @@
     }
     ellipse(83, 112, 54, 77, palette.face);
     ellipse(157, 112, 54, 77, palette.face);
-    ellipse(120, 155, 80, 59, palette.face);
+    // Match the native renderer's broad white cheeks and rounded chin.
+    ellipse(120, 148, 104, 74, palette.face);
     const cheek = mixColor(palette.face, palette.cheek, clamp(p.cheek, 0, 1));
     ellipse(53, 131, 13, 8, cheek); ellipse(187, 131, 13, 8, cheek);
     const curvePoints = (cx, rx, middle, half) => {
