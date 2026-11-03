@@ -2,6 +2,9 @@
 
 GarMyFriendの共通アプリです。濃紺の輪郭・白い顔模様・オレンジのくちばしを持つペンギンの顔を幾何図形で描きます。ノブの回転で8つの表情を切り替え、押下でまばたきします。表情の補間とアニメーションはこのアプリが処理します。
 
+実機の会話では、`GAR_LIVE_BROKER_CONFIG` に機器専用の非公開プロフィールを指定すると、共有Cloud Run APIから短期トークンを取得します。Gemini APIキーを実機へ保存する必要はありません。顔のみの会話は切断・期限切れ後に再接続し、身体を有効にした会話は開始姿勢の再確認を必要とします。
+`GAR_LIVE_INITIAL_MUTED=1` でマイク送信を停止して開始し、`GAR_LIVE_PRESS_MUTE=1` でノブ押下による切替ができます。起動・認証情報の配置はProductが担当します。
+
 実機への導入、配線、VirtualBoxとWebPanelの使い方は、機種別Productの
 [GarMyFriend-OrangePiZero2W](https://github.com/ThousandsOfTies/GarMyFriend-OrangePiZero2W)を参照してください。Productがこのリポジトリとgar-toolsのコミットをサブモジュールで固定します。
 

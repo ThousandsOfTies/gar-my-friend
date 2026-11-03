@@ -34,13 +34,13 @@ class LiveSession{
     listen(this.client,'cancel',()=>{if(!this.closed&&friend.servo)friend.command('stop').catch(error=>this.fail(error));});
     listen(this.client,'error',({detail})=>this.fail(new Error(detail)));
   }
-  async start({apiKey,model=config.model,voice=config.voice}={}){
+  async start({apiKey,ephemeralToken,apiVersion,model=config.model,voice=config.voice}={}){
     if(this.closed||this.started)throw new Error('Conversation is closed or already started');this.started=true;
     try{
       this.onStatus('connecting');
       await this.audio.start();if(this.closed)return;
-      await this.client.connect({apiKey,model,voice,instruction:config.instruction+(this.allowBody?'':'\n今回は身体操作は無効です。身体を動かしたとは説明しません。'),tools:config.tools.filter(tool=>this.allowBody||tool.name!=='move_body')});
-      if(this.closed)return;this.onStatus('listening');this.client.text('こんにちは。短く自己紹介して挨拶してください。');
+      await this.client.connect({apiKey,ephemeralToken,apiVersion,model,voice,instruction:config.instruction+(this.allowBody?'':'\n今回は身体操作は無効です。身体を動かしたとは説明しません。'),tools:config.tools.filter(tool=>this.allowBody||tool.name!=='move_body')});
+      if(this.closed)return;this.onStatus(this.muted?'muted':'listening');this.client.text(this.muted?'短く挨拶して、マイク送信は停止中と伝えてください。':'こんにちは。短く自己紹介して挨拶してください。');
     }catch(error){await this.close();throw error;}
   }
   setMuted(value){this.muted=Boolean(value);if(this.muted)this.client.audioEnd();this.onStatus(this.muted?'muted':'listening');}

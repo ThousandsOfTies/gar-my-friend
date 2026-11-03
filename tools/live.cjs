@@ -27,8 +27,13 @@ async function check(){
   const audio=loadAudioConfig(process.env.GAR_HARDWARE_DIR),devices=await driver.devices();
   const commands={arecord:await commandAvailable('arecord'),aplay:await commandAvailable('aplay')};
   const found=direction=>Boolean(audio[direction]&&devices.some(card=>card.endpoints.some(endpoint=>endpoint.direction===direction&&endpoint.device===audio[direction])));
-  const report={platform:process.platform,node:process.versions.node,webSocket:typeof WebSocket==='function',audio,devices,commands,keyPresent:Boolean(process.env.GEMINI_API_KEY?.trim()),captureDetected:found('capture'),playbackDetected:found('playback')};
-  report.ready=report.platform==='linux'&&report.webSocket&&commands.arecord&&commands.aplay&&report.captureDetected&&report.playbackDetected&&report.keyPresent;
+  let brokerConfigured=false;
+  if(process.env.GAR_LIVE_BROKER_CONFIG){
+    const {loadProfile}=require(path.join(process.env.GAR_TOOLS_ROOT,'targets/linux-device/runtime/gemini-live/broker.cjs'));
+    loadProfile(process.env.GAR_LIVE_BROKER_CONFIG);brokerConfigured=true;
+  }
+  const report={platform:process.platform,node:process.versions.node,webSocket:typeof WebSocket==='function',audio,devices,commands,keyPresent:Boolean(process.env.GEMINI_API_KEY?.trim()),brokerConfigured,captureDetected:found('capture'),playbackDetected:found('playback')};
+  report.ready=report.platform==='linux'&&report.webSocket&&commands.arecord&&commands.aplay&&report.captureDetected&&report.playbackDetected&&(report.keyPresent||brokerConfigured);
   return report;
 }
 async function main(args=process.argv.slice(2)){
