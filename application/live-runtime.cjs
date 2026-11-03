@@ -15,7 +15,9 @@ async function startLive(friend,{apiKey,onFailure=console.error,signal}={}){
   const allowBody=process.env.GAR_FRIEND_LIVE_BODY==='1';
   const playbackLeadInMs=Number(process.env.GAR_AUDIO_PLAYBACK_LEAD_IN_MS??0);
   if(!Number.isInteger(playbackLeadInMs)||playbackLeadInMs<0||playbackLeadInMs>1000)throw new Error('GAR_AUDIO_PLAYBACK_LEAD_IN_MS must be 0..1000');
-  const createSession=callbacks=>new LiveSession({friend,audio:new AlsaDuplex({...loadAudioConfig(process.env.GAR_HARDWARE_DIR),playbackLeadInMs}),
+  const playbackCue=process.env.GAR_AUDIO_PLAYBACK_CUE==='1';
+  if(playbackCue&&playbackLeadInMs<120)throw new Error('GAR_AUDIO_PLAYBACK_CUE needs at least 120 ms of lead-in');
+  const createSession=callbacks=>new LiveSession({friend,audio:new AlsaDuplex({...loadAudioConfig(process.env.GAR_HARDWARE_DIR),playbackLeadInMs,playbackCue}),
     createClient:options=>new GeminiLive(options),allowBody,from:process.env.GAR_FRIEND_START_POSE,duplex:process.env.GAR_FRIEND_LIVE_DUPLEX==='1',...callbacks});
   const onStatus=state=>console.error(`Live audio: ${state}`);
   if(brokerFile){
