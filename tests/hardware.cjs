@@ -26,6 +26,20 @@ test('GAR CSV values select nondefault GPIO/SPI wiring, including quoted descrip
   });
 });
 
+test('a display-only Product needs no encoder pins and retains display validation',t=>{
+  const directory=fixture(t),gpio=path.join(directory,'gpio.csv'),spi=path.join(directory,'spi.csv');
+  fs.writeFileSync(gpio,'name,chip,line,direction\n'+
+    'lcd_dc,/dev/gpiochip3,8,output\n'+'lcd_rst,/dev/gpiochip3,9,output\n');
+  assert.deepEqual(loadHardware(directory),{
+    display:{spi:'/dev/spidev2.1',chip:'/dev/gpiochip3',dc:8,hz:2000000,reset:9},rotary:null,
+  });
+  fs.appendFileSync(gpio,'encoder_a,/dev/gpiochip3,1,input\n');
+  assert.throws(()=>loadHardware(directory),/encoder_b/,'Partially wired encoder configuration must still be rejected');
+  fs.writeFileSync(gpio,'name,chip,line,direction\nlcd_dc,/dev/gpiochip3,8,output\n');
+  fs.writeFileSync(spi,fs.readFileSync(spi,'utf8').replace('spidev2.1','spidev0.0'));
+  assert.throws(()=>loadHardware(directory),/path\/bus\/CS/);
+});
+
 test('physical reset and input bias come from CSV and cannot share a pin',t=>{
   const directory=fixture(t),gpio=path.join(directory,'gpio.csv');
   const rows=fs.readFileSync(gpio,'utf8')+'lcd_rst,/dev/gpiochip3,9,output,display_ctrl,high,1,,,Reset\n';

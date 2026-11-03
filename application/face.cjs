@@ -32,10 +32,11 @@ async function close(error){
   if(error){console.error(error.message);process.exitCode=1;}
 }
 output=new DisplayOutput(root,hardware.display,close);
-input=new RotaryInput(root,hardware.rotary,event=>{
+if(hardware.rotary)input=new RotaryInput(root,hardware.rotary,event=>{
   if(liveEnabled&&process.env.GAR_LIVE_PRESS_MUTE==='1'&&event.action==='press'){liveMuted=!liveMuted;live?.setMuted(liveMuted);}
   friend.input(event);
 },close);
+else console.log('Rotary input disabled by Product hardware configuration');
 if(process.env.GAR_FRIEND_CONTROL_SOCKET)startControl(process.env.GAR_FRIEND_CONTROL_SOCKET,friend).then(async value=>{if(closed)await value.close();else control=value;}).catch(close);
 if(liveEnabled)livePending=startLive(friend,{apiKey:liveKey,onFailure:close,signal:liveAbort.signal}).then(async value=>{live=value;live.setMuted(liveMuted);if(closed)await value.close();}).catch(error=>{if(!closed)close(error);});
 let previous=performance.now();
