@@ -22,7 +22,7 @@ const liveEnabled=process.env.GAR_FRIEND_LIVE==='1',liveKey=liveEnabled&&!proces
 if(liveEnabled)delete process.env.GEMINI_API_KEY; // Do not pass credentials to audio/display/servo children.
 const servo=config.servo?new ServoOutput(config.servo,{binary:path.join(process.env.GAR_BIN_DIR||path.join(root,'build'),'gar-servoctl')}):null;
 const speech=config.speech&&!liveEnabled?new SpeechOutput(config.speech,{onSpeaking:value=>face.setSpeaking(value)}):null;
-const friend=new FriendRuntime({face,servo,speech,onError:error=>console.error(`Friend output: ${error.message}`)});
+const friend=new FriendRuntime({face,servo,speech,buildId:process.env.GAR_BUILD_ID||null,onError:error=>console.error(`Friend output: ${error.message}`)});
 let output,input,timer,control,live,livePending,closed=false,liveMuted=process.env.GAR_LIVE_INITIAL_MUTED==='1';const liveAbort=new AbortController();
 async function close(error){
   if(closed)return;closed=true;liveAbort.abort();clearInterval(timer);input?.close();output?.close();

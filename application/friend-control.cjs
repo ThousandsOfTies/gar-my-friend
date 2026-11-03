@@ -4,6 +4,7 @@ const fs=require('node:fs/promises');
 const path=require('node:path');
 const {expressions}=require('../shared/expressions.json');
 const MODES=['forward','backward','stop','lie','stand'];
+const conversations=new WeakMap();
 const config={model:'gemini-3.8-live',voice:'Puck',instruction:
   'あなたは小さな相棒GarMyFriendです。自分の身体は、表情を映す顔の画面、マイク、スピーカー、サーボで動く4本の脚を備えた小型ロボットです。'+
   '日本語で短く親しみやすく話してください。最初に短く挨拶します。会話に合う表情をchange_emotionで選びます。'+
@@ -26,12 +27,33 @@ async function execute(friend,value){
   if(!value||Array.isArray(value)||typeof value!=='object')throw new Error('Invalid application command');
   if(value.type==='state')return friend.status();
   if(value.type==='config')return config;
+  if(value.type==='conversation'){
+    if(value.action==='open'){
+      if(conversations.has(friend))throw new Error('Another conversation is active');
+      const {FriendConversation}=require('./conversation.cjs');
+      const conversation=new FriendConversation(friend,{allowBody:!!friend.servo,askPose:true});
+      conversations.set(friend,conversation);
+      return {config:conversation.configuration(),body:conversation.bodyState()};
+    }
+    const conversation=conversations.get(friend);
+    if(!conversation)throw new Error('Conversation has ended');
+    if(value.action==='input'){conversation.transcript(value.input);return {ok:true};}
+    if(value.action==='tool')return conversation.tool({name:value.name,args:value.args});
+    if(value.action==='state')return conversation.bodyState();
+    if(value.action==='cancel'){await conversation.cancel();return conversation.bodyState();}
+    if(value.action==='close'){await conversation.close();conversations.delete(friend);return {ok:true};}
+    throw new Error('Unknown conversation action');
+  }
   if(value.type==='speaking'){
     if(typeof value.value!=='boolean')throw new Error('Expected speaking boolean');
     friend.face.setSpeaking(value.value);return friend.status();
   }
   if(value.type==='body'){
     bodyInput(value);
+    if(conversations.has(friend)){
+      if(value.mode!=='stop')throw new Error('Use conversation controls while a conversation is active');
+      conversations.get(friend).forgetPose();
+    }
     if(value.mode!=='stop'&&(friend.servo?.current||friend.servo?.stopping))throw new Error('Body motion is already running');
     if(!friend.servo)throw new Error('Servo output is disabled');
     const work=friend.command(value.mode,value.mode==='stop'?undefined:{from:value.from});
@@ -97,6 +119,6 @@ async function startControl(socket,friend){
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(socket,resolve);});
   await fs.chmod(socket,0o600);
   let closed=false;
-  return {async close(){if(closed)return;closed=true;clearTimeout(speakingTimer);friend.face.setSpeaking(false);for(const peer of peers)peer.destroy();await new Promise(resolve=>server.close(resolve));}};
+  return {async close(){if(closed)return;closed=true;clearTimeout(speakingTimer);await conversations.get(friend)?.close();conversations.delete(friend);friend.face.setSpeaking(false);for(const peer of peers)peer.destroy();await new Promise(resolve=>server.close(resolve));}};
 }
 module.exports={startControl,requestControl,execute,config};
