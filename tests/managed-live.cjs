@@ -1,6 +1,9 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict');
 const {ManagedLive}=require('../application/managed-live.cjs');
+const {LiveSession}=require('../application/live-session.cjs');
+const {FriendRuntime}=require('../application/friend-runtime.cjs');
+const {EventEmitter}=require('node:events');
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 async function until(predicate){for(let i=0;i<50&&!predicate();i++)await settle();assert.ok(predicate(),'Expected managed session state');}
 const credentials=i=>({ephemeralToken:`auth_tokens/test-${i}`,model:'gemini-3.8-live',apiVersion:'v1alpha',expiresAt:new Date(Date.now()+30*60_000).toISOString()});
@@ -49,4 +52,26 @@ test('a body-enabled session must be explicitly restarted after disconnection',a
   await until(()=>sessions[0]?.credentials);sessions[0].onFailure(new Error('Connection gone'));
   await until(()=>failures.length===1);assert.equal(count,1);assert.equal(sessions[0].closed,true);
   assert.match(failures[0],/confirm the body pose/);await managed.close();
+});
+
+test('voice-confirmed body sessions reconnect with an unknown pose and never replay motion',async()=>{
+  const sessions=[],moves=[];let count=0;
+  const friend=new FriendRuntime({servo:{async perform(mode,options){moves.push({mode,options});return true;}}});
+  const managed=new ManagedLive({credentials:async()=>credentials(++count),wait:async()=>{},createSession:callbacks=>{
+    const audio=new EventEmitter();Object.assign(audio,{async start(){},async close(){}});
+    const client=new EventTarget();Object.assign(client,{async connect(){},text(){},stop(){}});
+    const session=new LiveSession({friend,audio,allowBody:true,askPose:true,createClient:options=>{client.tool=options.onTool;return client;},...callbacks});
+    sessions.push({session,client});return session;
+  }}).start();
+  await until(()=>sessions[0]?.session.started);
+  const tool=(index,name,args={})=>sessions[index].client.tool({name,args},{signal:new AbortController().signal});
+  const user=text=>{const event=new Event('transcript');event.detail={role:'user',text};sessions[0].client.dispatchEvent(event);};
+  user('今は伏せています');await tool(0,'confirm_body_pose',{pose:'lie'});user('立って');await tool(0,'move_body',{mode:'stand'});
+  assert.equal((await tool(0,'get_friend_state')).body.pose,'stand');
+  const event=new Event('error');event.detail='Connection gone';sessions[0].client.dispatchEvent(event);
+  await until(()=>sessions[1]?.session.started);
+  assert.equal((await tool(1,'get_friend_state')).body.pose,null);
+  assert.equal((await tool(1,'move_body',{mode:'forward'})).status,'blocked');
+  assert.equal(moves.filter(move=>move.mode!=='stop').length,1);
+  await managed.close();
 });
