@@ -1,6 +1,6 @@
 # gar-my-friend
 
-GarMyFriendの共通アプリです。幾何図形で目・鼻・口・頬を描き、ノブの回転で8つの表情を切り替え、押下でまばたきします。表情の補間とアニメーションはこのアプリが処理します。
+GarMyFriendの共通アプリです。濃紺の輪郭・白い顔模様・オレンジのくちばしを持つペンギンの顔を幾何図形で描きます。ノブの回転で8つの表情を切り替え、押下でまばたきします。表情の補間とアニメーションはこのアプリが処理します。
 
 実機への導入、配線、VirtualBoxとWebPanelの使い方は、機種別Productの
 [GarMyFriend-OrangePiZero2W](https://github.com/ThousandsOfTies/GarMyFriend-OrangePiZero2W)を参照してください。Productがこのリポジトリとgar-toolsのコミットをサブモジュールで固定します。

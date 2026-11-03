@@ -25,7 +25,10 @@
     function ellipse(x, y, rx, ry, fill) {
       ctx.fillStyle = fill; ctx.beginPath(); ctx.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
     }
-    const cheek = mixColor(palette.background, palette.cheek, clamp(p.cheek, 0, 1));
+    ellipse(83, 112, 54, 77, palette.face);
+    ellipse(157, 112, 54, 77, palette.face);
+    ellipse(120, 155, 80, 59, palette.face);
+    const cheek = mixColor(palette.face, palette.cheek, clamp(p.cheek, 0, 1));
     ellipse(53, 131, 13, 8, cheek); ellipse(187, 131, 13, 8, cheek);
     const curvePoints = (cx, rx, middle, half) => {
       const top = [], bottom = [];
@@ -52,8 +55,15 @@
         u => p.eyeY + gazeY - p.happyEye * (1 - blink) * 8 * (1 - u * u) + p.tilt * side * u,
         u => thickness * Math.sqrt(Math.max(0, 1 - u * u)));
       strip(points.top, points.bottom);
+      if (open > 0.5 && p.happyEye < 0.5) {
+        ellipse(cx - 3, p.eyeY + gazeY - 5, 2.5, 3, palette.face);
+      }
     }
-    ellipse(120, 125, 8, 5, palette.ink);
+    const halfWidth = clamp(p.mouthW, 1, 70) / 2;
+    ctx.fillStyle = palette.beakShade;
+    path([[120 - halfWidth - 7, p.mouthY - 1], [120 + halfWidth + 7, p.mouthY - 1],
+      [120, p.mouthY + 15 + p.mouthOpen / 2]], true); ctx.fill();
+    ellipse(120, p.mouthY - 2, halfWidth + 7, 9 + p.mouthOpen / 2, palette.beak);
     const mouth = curvePoints(120, p.mouthW / 2,
       u => p.mouthY + p.mouthCurve * (1 - u * u),
       u => p.mouthOpen / 2 * Math.sqrt(Math.max(0, 1 - u * u)));

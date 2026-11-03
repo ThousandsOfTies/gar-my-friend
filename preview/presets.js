@@ -4,9 +4,12 @@ window.FacePresets = {
   "width": 240,
   "height": 240,
   "palette": {
-    "background": "#f9d66b",
-    "ink": "#252421",
-    "cheek": "#e59183"
+    "background": "#202c3b",
+    "face": "#fff8e9",
+    "ink": "#18222e",
+    "cheek": "#efa49a",
+    "beak": "#f4ac45",
+    "beakShade": "#df8b32"
   },
   "expressions": [
     {
@@ -14,15 +17,15 @@ window.FacePresets = {
       "label": "通常",
       "pose": {
         "eyeRx": 11,
-        "eyeRy": 20,
-        "eyeY": 87,
+        "eyeRy": 18,
+        "eyeY": 97,
         "leftOpen": 1,
         "rightOpen": 1,
         "happyEye": 0,
         "tilt": 0,
-        "mouthY": 158,
-        "mouthW": 38,
-        "mouthCurve": 12,
+        "mouthY": 144,
+        "mouthW": 34,
+        "mouthCurve": 4,
         "mouthOpen": 0,
         "cheek": 0.55
       }
@@ -32,16 +35,16 @@ window.FacePresets = {
       "label": "喜び",
       "pose": {
         "eyeRx": 15,
-        "eyeRy": 20,
-        "eyeY": 90,
+        "eyeRy": 18,
+        "eyeY": 100,
         "leftOpen": 1,
         "rightOpen": 1,
         "happyEye": 1,
         "tilt": 0,
-        "mouthY": 155,
-        "mouthW": 47,
-        "mouthCurve": 13,
-        "mouthOpen": 14,
+        "mouthY": 143,
+        "mouthW": 40,
+        "mouthCurve": 5,
+        "mouthOpen": 10,
         "cheek": 0.85
       }
     },
@@ -50,15 +53,15 @@ window.FacePresets = {
       "label": "悲しみ",
       "pose": {
         "eyeRx": 10,
-        "eyeRy": 19,
-        "eyeY": 94,
+        "eyeRy": 18,
+        "eyeY": 104,
         "leftOpen": 0.72,
         "rightOpen": 0.72,
         "happyEye": 0,
         "tilt": -5,
-        "mouthY": 168,
-        "mouthW": 32,
-        "mouthCurve": -10,
+        "mouthY": 148,
+        "mouthW": 31,
+        "mouthCurve": -4,
         "mouthOpen": 0,
         "cheek": 0.3
       }
@@ -69,12 +72,12 @@ window.FacePresets = {
       "pose": {
         "eyeRx": 14,
         "eyeRy": 16,
-        "eyeY": 91,
+        "eyeY": 101,
         "leftOpen": 0.55,
         "rightOpen": 0.55,
         "happyEye": 0,
         "tilt": 7,
-        "mouthY": 166,
+        "mouthY": 147,
         "mouthW": 32,
         "mouthCurve": -2,
         "mouthOpen": 0,
@@ -87,15 +90,15 @@ window.FacePresets = {
       "pose": {
         "eyeRx": 15,
         "eyeRy": 23,
-        "eyeY": 84,
+        "eyeY": 94,
         "leftOpen": 1,
         "rightOpen": 1,
         "happyEye": 0,
         "tilt": 0,
-        "mouthY": 164,
-        "mouthW": 20,
+        "mouthY": 145,
+        "mouthW": 26,
         "mouthCurve": 0,
-        "mouthOpen": 26,
+        "mouthOpen": 21,
         "cheek": 0.35
       }
     },
@@ -104,14 +107,14 @@ window.FacePresets = {
       "label": "無表情",
       "pose": {
         "eyeRx": 13,
-        "eyeRy": 20,
-        "eyeY": 91,
+        "eyeRy": 18,
+        "eyeY": 101,
         "leftOpen": 0.12,
         "rightOpen": 0.12,
         "happyEye": 0,
         "tilt": 0,
-        "mouthY": 164,
-        "mouthW": 28,
+        "mouthY": 146,
+        "mouthW": 30,
         "mouthCurve": 0,
         "mouthOpen": 0,
         "cheek": 0.3
@@ -122,16 +125,16 @@ window.FacePresets = {
       "label": "眠い",
       "pose": {
         "eyeRx": 13,
-        "eyeRy": 20,
-        "eyeY": 94,
+        "eyeRy": 18,
+        "eyeY": 104,
         "leftOpen": 0.2,
         "rightOpen": 0.2,
         "happyEye": 0,
         "tilt": 0,
-        "mouthY": 165,
-        "mouthW": 17,
-        "mouthCurve": 3,
-        "mouthOpen": 4,
+        "mouthY": 146,
+        "mouthW": 26,
+        "mouthCurve": 2,
+        "mouthOpen": 3,
         "cheek": 0.45
       }
     },
@@ -140,15 +143,15 @@ window.FacePresets = {
       "label": "ウインク",
       "pose": {
         "eyeRx": 11,
-        "eyeRy": 20,
-        "eyeY": 87,
+        "eyeRy": 18,
+        "eyeY": 97,
         "leftOpen": 1,
         "rightOpen": 0,
         "happyEye": 0,
         "tilt": 0,
-        "mouthY": 158,
-        "mouthW": 38,
-        "mouthCurve": 12,
+        "mouthY": 144,
+        "mouthW": 34,
+        "mouthCurve": 4,
         "mouthOpen": 0,
         "cheek": 0.8
       }

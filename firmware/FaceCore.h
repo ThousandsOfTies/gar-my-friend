@@ -84,8 +84,9 @@ struct Effects {
 };
 
 struct Palette {
-    std::uint32_t background, ink, cheek; // 0xRRGGBB
-    Palette() : background(kBackgroundRgb), ink(kInkRgb), cheek(kCheekRgb) {}
+    std::uint32_t background, face, ink, cheek, beak, beakShade; // 0xRRGGBB
+    Palette() : background(kBackgroundRgb), face(kFaceRgb), ink(kInkRgb),
+                cheek(kCheekRgb), beak(kBeakRgb), beakShade(kBeakShadeRgb) {}
 };
 
 inline std::uint16_t rgb565(std::uint32_t rgb) {
@@ -170,12 +171,33 @@ template<class Surface>
 void render(Surface& surface, const Pose& pose, const Effects& effects = Effects(),
             const Palette& palette = Palette()) {
     const std::uint16_t ink = rgb565(palette.ink);
-    const std::uint16_t blush = rgb565(blendRgb(palette.background, palette.cheek, pose.cheek));
+    const std::uint16_t face = rgb565(palette.face);
+    // Overlapping ivory lobes leave a soft V-shaped penguin forehead.
+    surface.fillEllipse(83.0f, 112.0f, 54.0f, 77.0f, face);
+    surface.fillEllipse(157.0f, 112.0f, 54.0f, 77.0f, face);
+    surface.fillEllipse(120.0f, 155.0f, 80.0f, 59.0f, face);
+    const std::uint16_t blush = rgb565(blendRgb(palette.face, palette.cheek, pose.cheek));
     surface.fillEllipse(53.0f, 131.0f, 13.0f, 8.0f, blush);
     surface.fillEllipse(187.0f, 131.0f, 13.0f, 8.0f, blush);
     detail::eye(surface, pose, effects, 78.0f, 1.0f, pose.leftOpen, ink);
     detail::eye(surface, pose, effects, 162.0f, -1.0f, pose.rightOpen, ink);
-    surface.fillEllipse(120.0f, 125.0f, 8.0f, 5.0f, ink);
+    // Eye gleams disappear with the eyelids, including during an animated blink.
+    const float opens[] = {pose.leftOpen, pose.rightOpen};
+    for (int i = 0; i < 2; ++i) {
+        if (opens[i] * clamp(effects.blink, 0.0f, 1.0f) > 0.5f && pose.happyEye < 0.5f) {
+            surface.fillEllipse((i ? 162.0f : 78.0f) + clamp(effects.gazeX, -8.0f, 8.0f) - 3.0f,
+                                pose.eyeY + clamp(effects.gazeY, -8.0f, 8.0f) - 5.0f,
+                                2.5f, 3.0f, face);
+        }
+    }
+    // The animated mouth is the beak's seam, with no separate mammal nose.
+    const float halfWidth = clamp(pose.mouthW, 1.0f, 70.0f) * 0.5f;
+    const float opening = clamp(pose.mouthOpen + effects.talkOpen, 0.0f, 38.0f);
+    surface.fillTriangle(120.0f - halfWidth - 7.0f, pose.mouthY - 1.0f,
+                         120.0f + halfWidth + 7.0f, pose.mouthY - 1.0f,
+                         120.0f, pose.mouthY + 15.0f + opening * 0.5f, rgb565(palette.beakShade));
+    surface.fillEllipse(120.0f, pose.mouthY - 2.0f, halfWidth + 7.0f,
+                        9.0f + opening * 0.5f, rgb565(palette.beak));
     detail::mouth(surface, pose, effects, ink);
 }
 
