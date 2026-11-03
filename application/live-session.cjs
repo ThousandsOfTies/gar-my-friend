@@ -39,7 +39,10 @@ class LiveSession{
     try{
       this.onStatus('connecting');
       await this.audio.start();if(this.closed)return;
-      await this.client.connect({apiKey,ephemeralToken,apiVersion,model,voice,instruction:config.instruction+(this.allowBody?'':'\n今回は身体操作は無効です。身体を動かしたとは説明しません。'),tools:config.tools.filter(tool=>this.allowBody||tool.name!=='move_body')});
+      const bodyInstruction=this.allowBody?
+        '\n現在のセッションでは身体操作が許可されています。準備状況と実行結果に従って応答してください。':
+        '\n現在のセッションでは身体操作は無効です。顔の表情と会話は使えますが、脚は操作できません。身体への指示の意味は理解したうえで、例えば前進の依頼には「前に歩くんだね。今は脚の操作が無効だから、まだ動けないよ」のように短く自然に答えてください。身体を動かしたとは説明しません。';
+      await this.client.connect({apiKey,ephemeralToken,apiVersion,model,voice,instruction:config.instruction+bodyInstruction,tools:config.tools.filter(tool=>this.allowBody||tool.name!=='move_body')});
       if(this.closed)return;this.onStatus('ready');this.onStatus(this.muted?'muted':'listening');this.client.text(this.muted?'短く挨拶して、マイク送信は停止中と伝えてください。':'こんにちは。短く自己紹介して挨拶してください。');
     }catch(error){await this.close();throw error;}
   }
