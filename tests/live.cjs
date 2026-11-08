@@ -16,6 +16,7 @@ function fixture(settings={}){
 test('native session uses shared semantic tools, truthful playback state and half-duplex echo protection',async()=>{
   const f=fixture();await f.session.start({apiKey:'never-print-this'});
   assert.equal(f.client.config.tools.some(tool=>tool.name==='move_body'),false);
+  assert.ok(f.client.config.tools.every(tool=>tool.behavior==='BLOCKING'));
   const bytes=new Uint8Array([1,2]);f.audio.emit('input',bytes);assert.equal(f.client.sent.length,1);
   f.client.emit('audio',{bytes,sampleRate:24000});assert.equal(f.friend.face.speaking,true);
   f.audio.emit('input',bytes);assert.equal(f.client.sent.length,1,'Do not feed the speaker back to Gemini');
@@ -48,6 +49,7 @@ test('voice confirmation records the current pose without moving and gates body 
   const f=fixture({servo:true,allowBody:true,askPose:true});await f.session.start({apiKey:'test'});
   const call=(name,args={})=>f.client.tool({name,args},{signal:new AbortController().signal});
   assert.equal(f.client.config.tools.some(tool=>tool.name==='confirm_body_pose'),true);
+  assert.ok(f.client.config.tools.every(tool=>tool.behavior==='BLOCKING'),'Motion, pose and expression results precede spoken replies');
   assert.equal((await call('get_friend_state')).body.poseConfirmationRequired,true);
   assert.equal((await call('move_body',{mode:'forward'})).reason,'pose_confirmation_required');
   assert.deepEqual(f.movements,[]);

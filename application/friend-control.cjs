@@ -15,10 +15,11 @@ const config={model:'gemini-3.8-live',voice:'Puck',instruction:
   '身体操作の可否はセッションの設定、使えるツール、get_friend_stateの結果に従います。操作が無効、準備不足、または実行に失敗したときも、身体への指示として受け止め、分かっている理由だけを短く自然に伝えます。'+
   '「AIなので身体がない」とは答えず、故障・未接続など確認できていない理由を作りません。操作を有効にしたり実行したりしたふりもしません。'+
   'move_bodyは一度だけの有限動作で、完了結果を確認してから実行できた動作を説明します。移動距離や動作後の脚の姿勢は実測していないため、確認できたとは言いません。'+
+  '操作が必要な返答は、必要な操作と状態確認が終わってから結果をまとめて一度だけ短く伝えます。同じ依頼について完了報告や質問を繰り返しません。実行できない場合は理由を短く伝え、新しい指示を待ちます。'+
   'ツール名や内部データは読み上げません。',
   tools:[{name:'change_emotion',description:'顔の表情を変える',parameters:{type:'object',properties:{emotion:{type:'string',enum:expressions.map(e=>e.id)}},required:['emotion']}},
     {name:'move_body',description:'依頼された身体の動作を一回実行する。停止は即時、その他は完了を待つ。',parameters:{type:'object',properties:{mode:{type:'string',enum:MODES}},required:['mode']}},
-    {name:'get_friend_state',description:'現在の表情と身体の実行状態を取得する',parameters:{type:'object',properties:{}}}]};
+    {name:'get_friend_state',description:'現在の表情と身体の実行状態を取得する',parameters:{type:'object',properties:{}}}].map(tool=>({...tool,behavior:'BLOCKING'}))};
 
 function bodyInput(value){
   if(!MODES.includes(value.mode)||!['stand','lie'].includes(value.from)&&value.mode!=='stop')throw new Error('Invalid body mode or starting pose');

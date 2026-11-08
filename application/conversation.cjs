@@ -2,7 +2,7 @@
 const {config,execute}=require('./friend-control.cjs');
 const {reportedPose}=require('./body-pose.cjs');
 const POSES=['stand','lie'];
-const poseTool={name:'confirm_body_pose',description:'利用者が実物の現在の脚の姿勢を明示したときだけ記録する。脚は動かさない。「立って」「伏せて」という動作命令だけでは確認にならない。',
+const poseTool={name:'confirm_body_pose',behavior:'BLOCKING',description:'利用者が実物の現在の脚の姿勢を明示したときだけ記録する。脚は動かさない。「立って」「伏せて」という動作命令だけでは確認にならない。',
   parameters:{type:'object',properties:{pose:{type:'string',enum:POSES}},required:['pose']}};
 
 /** App-owned conversation state shared by native audio and simulator transports. */
